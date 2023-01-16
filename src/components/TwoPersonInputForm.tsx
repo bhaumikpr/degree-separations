@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Form, Col, Row, Button } from "react-bootstrap";
 import { Formik } from "formik";
 import * as yup from "yup";
+import { AddRelation, Person } from "../types";
 
 const schema = yup.object().shape({
   person1: yup.string().required("Please select a person"),
@@ -13,12 +14,8 @@ function TwoPersonInputForm({
   onSubmit,
   submitBtnName,
 }: {
-  persons: { id: number; name: string }[];
-
-  onSubmit: (values: {
-    person1: string;
-    person2: string;
-  }) => void | Promise<any>;
+  persons: Person[];
+  onSubmit: (values: AddRelation) => void | Promise<any>;
   submitBtnName: string;
 }) {
   const personsOption = useMemo(

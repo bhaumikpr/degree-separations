@@ -6,26 +6,17 @@ import CardLayout from "./components/CardLayout";
 import DisplayNode from "./components/DisplayNode";
 import Header from "./components/Header";
 import TwoPersonInputForm from "./components/TwoPersonInputForm";
+import { AddRelation } from "./types";
 import Graph from "./utils/graph";
+import { initGraphData, initPersons, initRelations } from "./utils/init";
 import Node from "./utils/node";
 
 function App() {
   const graph = useMemo(() => new Graph(), []);
 
-  const [persons, setPersons] = useState([
-    { id: 1, name: "Sameer" },
-    { id: 2, name: "Aayushi" },
-    { id: 3, name: "Bhaskar" },
-    { id: 4, name: "Kamalnath Sharma" },
-    { id: 5, name: "Shanti Kumar Saha" },
-  ]);
+  const [persons, setPersons] = useState(initPersons);
 
-  const [relations, setRelations] = useState([
-    { id: 1, person1: 1, person2: 2 },
-    { id: 2, person1: 2, person2: 3 },
-    { id: 3, person1: 1, person2: 4 },
-    { id: 4, person1: 4, person2: 5 },
-  ]);
+  const [relations, setRelations] = useState(initRelations);
 
   const [displayFriendsList, setDisplayFriendsList] = useState<JSX.Element[]>(
     []
@@ -34,67 +25,47 @@ function App() {
   const [separation, setSeparation] = useState<Node[][]>([]);
 
   useEffect(() => {
-    graph.addVertex(persons[0].name);
-    graph.addVertex(persons[1].name);
-    graph.addVertex(persons[2].name);
-    graph.addVertex(persons[3].name);
-    graph.addVertex(persons[4].name);
+    initGraphData(graph, persons, relations);
+    // console.log(graph.findAllPaths(persons[0].name, persons[2].name));
 
-    // graph.addVertex(2);
-
-    graph.addEdge(persons[0].name, persons[1].name);
-    graph.addEdge(persons[1].name, persons[2].name);
-    graph.addEdge(persons[0].name, persons[3].name);
-    graph.addEdge(persons[3].name, persons[4].name);
-    graph.addEdge(persons[4].name, persons[2].name);
-
-    console.log(graph.findAllPaths(persons[0].name, persons[2].name));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addPerson = ({ name }: { name: string }) => {
-    let newPerson = { id: persons.length + 1, name };
-    setPersons([...persons, newPerson]);
-    graph.addVertex(newPerson.name);
+    graph.addVertex(name);
+    const newPersons = [...persons, { id: persons.length + 1, name }];
+    setPersons(newPersons);
   };
 
-  const addRelation = ({
-    person1,
-    person2,
-  }: {
-    person1: string;
-    person2: string;
-  }) => {
+  const addRelation = ({ person1, person2 }: AddRelation) => {
     const person1Temp = persons.find((person) => person.name === person1);
     const person2Temp = persons.find((person) => person.name === person2);
 
     if (!person1Temp || !person2Temp) {
       return;
     }
-    const result = graph.addEdge(person1, person2);
-    console.log(result, "result");
 
-    setRelations([
+    graph.addEdge(person1, person2);
+    const newRelations = [
       ...relations,
       {
         id: relations.length + 1,
         person1: person1Temp.id,
         person2: person2Temp.id,
       },
-    ]);
+    ];
+
+    setRelations(newRelations);
   };
 
-  const findDegreeOfSeparation = ({
-    person1,
-    person2,
-  }: {
-    person1: string;
-    person2: string;
-  }) => {
+  const findDegreeOfSeparation = ({ person1, person2 }: AddRelation) => {
     const allPaths = graph.findAllPaths(person1, person2);
     setSeparation(allPaths);
   };
 
   useEffect(() => {
+    localStorage.setItem("persons", JSON.stringify(persons));
+    localStorage.setItem("relations", JSON.stringify(relations));
     const list = [];
     for (const personIter of graph.nodes.values()) {
       const personDiv = (
@@ -141,6 +112,7 @@ function App() {
               <div className="text-start">
                 <Card.Title>Persons</Card.Title>
                 {displayFriendsList}
+
                 <Card.Title className="mt-5">Degree of Separation</Card.Title>
                 {separation.map((path, i) => {
                   return (
