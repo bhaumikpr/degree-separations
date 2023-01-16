@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Form, Col, Row, Button } from "react-bootstrap";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -9,15 +9,28 @@ const schema = yup.object().shape({
 });
 
 function TwoPersonInputForm({
+  persons,
   onSubmit,
   submitBtnName,
 }: {
+  persons: { id: number; name: string }[];
+
   onSubmit: (values: {
     person1: string;
     person2: string;
   }) => void | Promise<any>;
   submitBtnName: string;
 }) {
+  const personsOption = useMemo(
+    () =>
+      persons.map((person) => (
+        <option key={person.id} value={person.name}>
+          {person.name}
+        </option>
+      )),
+    [persons]
+  );
+
   return (
     <Formik
       validationSchema={schema}
@@ -50,9 +63,7 @@ function TwoPersonInputForm({
                     <option key="blankChoice" hidden value="">
                       Person1
                     </option>
-                    <option key={"1"} value={1}>
-                      1
-                    </option>
+                    {personsOption}
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">
                     {errors.person1}
@@ -70,9 +81,7 @@ function TwoPersonInputForm({
                     <option key="blankChoice" hidden value="">
                       Person2
                     </option>
-                    <option key={"1"} value={1}>
-                      1
-                    </option>
+                    {personsOption}
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">
                     {errors.person2}
